@@ -1,3 +1,13 @@
+"""
+TO DO:
+Grid system
+Shoot the enemy with click
+two types of enemy: fire-enemy, rock-enemy
+fire-enemy can also shoot you
+implement platforms
+pillar- mario style
+"""
+
 import pygame, numpy
 import sys
 import random
@@ -182,16 +192,22 @@ class Teleport(Sprite):
     def __init__(self, startx, starty):
         super().__init__("teleport.png", startx, starty)
 
+class Box(Sprite):
+    def __init__(self, startx, starty):
+        super().__init__("boxAlt.png", startx, starty)
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
+    font = pygame.font.Font(None, 36)
 
     current_level = 1
 
     player = Player(50, 390)
 
 
+    # Sprite groups
     all_plat = pygame.sprite.Group()
     contactable = pygame.sprite.Group()
     platform_group = pygame.sprite.Group()
@@ -199,13 +215,29 @@ def main():
     stone = pygame.sprite.Group()
     fire = pygame.sprite.Group()
     bullets = pygame.sprite.Group()
+    box_group = pygame.sprite.Group()
 
-    teleport_group.add(Teleport(910, 390))
+    # Platform for all level
     platform_group.add(Platform(480, 490))
+
+    # level 1 objects
+    teleport_group.add(Teleport(910, 390))
     all_plat.add(platform_group)
     contactable.add(teleport_group)
     stone.add(Enemy(410, 420))
     fire.add(Fire(650, 420))
+
+    # text for level 1
+    text = font.render("Shoot the enemy with a mouse click.", True, (255, 255, 255))
+    text2 = font.render("Two types of enemy: fire-enemy, rock-enemy.", True, (255, 255, 255))
+    text3 = font.render("Fire-enemy can also shoot you, and rock-enemy can move and crush you.", True, (255, 255, 255))
+    text4 = font.render("If you die, you will be reborn at your spawn point.", True, (255, 255, 255))
+    text5 = font.render("Enter teleport to enter the next level.", True, (255, 255, 255))
+
+    # level 2 objects
+    box_group.add(Box(300,405))
+    box_group.add(Box(300, 335))
+
 
     done = True
     while done:
@@ -266,6 +298,24 @@ def main():
             player.draw(screen)
             all_plat.draw(screen)
 
+
+            # Display instruction text on the first level
+            screen.blit(text, (WIDTH // 14, HEIGHT // 4))
+            screen.blit(text2, (WIDTH // 14, HEIGHT // 4 + 40))
+            screen.blit(text3, (WIDTH // 14, HEIGHT // 4 + 80))
+            screen.blit(text4, (WIDTH // 14, HEIGHT // 4 + 120))
+            screen.blit(text5, (WIDTH // 14, HEIGHT // 4 + 160))
+
+            if pygame.sprite.spritecollideany(player, teleport_group):
+                current_level = 2
+                player.rect.center = (50, 390)
+                all_plat.add(box_group)
+
+        elif current_level == 3:
+            box_group.draw(screen)
+            player.draw(screen)
+            teleport_group.draw(screen)
+            all_plat.draw(screen)
 
         pygame.display.flip()
 
