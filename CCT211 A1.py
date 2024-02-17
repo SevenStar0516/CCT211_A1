@@ -113,6 +113,9 @@ class Platform(Sprite):
     def __init__(self, startx, starty):
         super().__init__("platform1.png", startx, starty)
 
+class Teleport(Sprite):
+    def __init__(self, startx, starty):
+        super().__init__("teleport.png", startx, starty)
 
 def main():
     pygame.init()
@@ -121,12 +124,12 @@ def main():
 
     current_level = 1
 
-    player = Player(280, 280)
+    player = Player(50, 380)
 
     all_plat = pygame.sprite.Group()
     platform_1 = pygame.sprite.Group()
     platform_1.add(Platform(480, 490))
-    all_plat.add(platform_1)
+
 
 
     done = True
@@ -139,11 +142,15 @@ def main():
 
         if current_level == 1:
             player.update(all_plat)
+            all_plat.add(platform_1)
+            all_plat.add(Teleport(910, 390))
             all_plat.draw(screen)
+
+
 
         player.draw(screen)
         pygame.display.flip()
-
+        print(clock.tick(60))
         clock.tick(60)
 
 
