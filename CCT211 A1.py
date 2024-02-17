@@ -124,15 +124,14 @@ def main():
 
     current_level = 1
 
-    player = Player(50, 380)
+    player = Player(50, 390)
 
     all_plat = pygame.sprite.Group()
     platform_group = pygame.sprite.Group()
     teleport_group = pygame.sprite.Group()
 
+    teleport_group.add(Teleport(910, 390))
     platform_group.add(Platform(480, 490))
-    tp_1 = Teleport(910, 390)
-    teleport_group.add(tp_1)
     all_plat.add(platform_group)
 
     done = True
@@ -148,16 +147,15 @@ def main():
         if current_level == 1:
             all_plat.draw(screen)
             teleport_group.draw(screen)
+            player.draw(screen)
             if pygame.sprite.spritecollideany(player, teleport_group):
-                all_plat.clear()
                 current_level = 2
-        elif current_level == 1:
-            pass
+                player.rect.center = (50, 390)
+        elif current_level == 2:
+            player.draw(screen)
+            all_plat.draw(screen)
 
 
-
-
-        player.draw(screen)
         pygame.display.flip()
 
         clock.tick(60)
