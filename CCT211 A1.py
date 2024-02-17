@@ -1,4 +1,6 @@
 import pygame, numpy
+import sys
+import random
 
 WIDTH = 960
 HEIGHT = 540
@@ -109,6 +111,69 @@ class Player(Sprite):
         self.rect.move_ip([-x, -y])
         return collide
 
+class Enemy(Sprite):
+    def __init__(self, startx, starty):
+        super().__init__("stone.png", startx, starty)
+        self.speed = 1
+    def update(self, contactable):
+        # Move the box horizontally
+        self.rect.x += self.speed
+
+        # If the box goes off the screen, reset its position
+        if self.rect.right < 0:
+            self.rect.left = WIDTH
+        elif self.rect.left> WIDTH:
+            self.rect.right = 0
+
+        # Check for collisions with static boxes and change direction if needed
+        collisions = pygame.sprite.spritecollide(self, contactable, False)
+        if collisions:
+            self.speed *= -1
+    def player_collisions(self):
+        self.speed *= -1
+
+class Fire(Sprite):
+    def __init__(self, startx, starty):
+        super().__init__("enemy.png", startx, starty)
+        self.speed = 1
+    def update(self, contactable):
+        # Move the box horizontally
+        self.rect.x += self.speed
+
+        # If the box goes off the screen, reset its position
+        if self.rect.right< 0:
+            self.rect.left = WIDTH
+        elif self.rect.left> WIDTH:
+            self.rect.right = 0
+
+        # Check for collisions with static boxes and change direction if needed
+        collisions = pygame.sprite.spritecollide(self, contactable, False)
+        if collisions:
+            self.speed *= -1
+    def player_collisions(self):
+        self.speed *= -1
+
+
+class Bullet(pygame.sprite.Sprite):
+    """ This class represents the bullet . """
+
+    def __init__(self):
+        # Call the parent class (Sprite) constructor
+        super().__init__()
+
+        self.image = pygame.Surface([10, 10])
+
+        self.image.fill(pygame.color.THECOLORS['red'])
+
+        self.rect = self.image.get_rect()
+
+        self.direction = 1 #Going right
+
+    def update(self):
+        """ Move the bullet. """
+        self.rect.x += (3*self.direction)
+
+
 class Platform(Sprite):
     def __init__(self, startx, starty):
         super().__init__("platform1.png", startx, starty)
@@ -126,13 +191,21 @@ def main():
 
     player = Player(50, 390)
 
+
     all_plat = pygame.sprite.Group()
+    contactable = pygame.sprite.Group()
     platform_group = pygame.sprite.Group()
     teleport_group = pygame.sprite.Group()
+    stone = pygame.sprite.Group()
+    fire = pygame.sprite.Group()
+    bullets = pygame.sprite.Group()
 
     teleport_group.add(Teleport(910, 390))
     platform_group.add(Platform(480, 490))
     all_plat.add(platform_group)
+    contactable.add(teleport_group)
+    stone.add(Enemy(410, 420))
+    fire.add(Fire(650, 420))
 
     done = True
     while done:
@@ -143,13 +216,51 @@ def main():
         screen.blit(BACKGROUND, (0, 0))
 
         player.update(all_plat)
+        stone.update(contactable)
+        fire.update(contactable)
+        bullets.update()
+
+        for bullet in bullets:
+
+            # Remove the bullet if it flies up off the screen
+            if bullet.rect.x > WIDTH:
+                bullets.remove(block)
+        
+        for block in contactable:
+            # See if it hit a block
+            bullet_hits_list = pygame.sprite.spritecollide(
+                block, bullets, True)
+
+            # For each block hit, remove the bullet and add to the score
+            for bullet in bullet_hits_list:
+                bullets.remove(bullet)
+
+        for enemy in fire:
+                if random.random() < 0.003:
+                    # Fire a bullet from the enemy
+                    bullet = Bullet()
+                    # Set the bullet so it is where the player is
+                    bullet.rect.x = enemy.rect.x
+                    bullet.rect.y = enemy.rect.y + (enemy.rect.height/2)
+                    bullet.direction = enemy.speed
+                    # Add the bullet to the lists
+                    bullets.add(bullet)
 
         if current_level == 1:
             all_plat.draw(screen)
             teleport_group.draw(screen)
             player.draw(screen)
+            stone.draw(screen)
+            fire.draw(screen)
+            bullets.draw(screen)
             if pygame.sprite.spritecollideany(player, teleport_group):
                 current_level = 2
+                player.rect.center = (50, 390)
+            if pygame.sprite.spritecollideany(player, bullets):
+                player.rect.center = (50, 390)
+            if pygame.sprite.spritecollideany(player, stone):
+                player.rect.center = (50, 390)
+            if pygame.sprite.spritecollideany(player, fire):
                 player.rect.center = (50, 390)
         elif current_level == 2:
             player.draw(screen)
@@ -160,6 +271,8 @@ def main():
 
         clock.tick(60)
 
+    pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()
