@@ -127,10 +127,13 @@ def main():
     player = Player(50, 380)
 
     all_plat = pygame.sprite.Group()
-    platform_1 = pygame.sprite.Group()
-    platform_1.add(Platform(480, 490))
+    platform_group = pygame.sprite.Group()
+    teleport_group = pygame.sprite.Group()
 
-
+    platform_group.add(Platform(480, 490))
+    tp_1 = Teleport(910, 390)
+    teleport_group.add(tp_1)
+    all_plat.add(platform_group)
 
     done = True
     while done:
@@ -140,17 +143,23 @@ def main():
 
         screen.blit(BACKGROUND, (0, 0))
 
+        player.update(all_plat)
+
         if current_level == 1:
-            player.update(all_plat)
-            all_plat.add(platform_1)
-            all_plat.add(Teleport(910, 390))
             all_plat.draw(screen)
+            teleport_group.draw(screen)
+            if pygame.sprite.spritecollideany(player, teleport_group):
+                all_plat.clear()
+                current_level = 2
+        elif current_level == 1:
+            pass
+
 
 
 
         player.draw(screen)
         pygame.display.flip()
-        print(clock.tick(60))
+
         clock.tick(60)
 
 
