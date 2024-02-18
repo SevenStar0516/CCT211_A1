@@ -156,7 +156,7 @@ class Fire(Sprite):
         self.speedy = speedy
         self.player = player
         # Set a timer to control the firing interval
-        self.bullet_timer = 0
+        self.bullet_timer = 60
 
     def update(self, contactable, bullets):
         # Increment the bullet timer
@@ -299,12 +299,6 @@ def main():
 
         screen.blit(BACKGROUND, (0, 0))
 
-        # Update game elements
-        player.update(all_plat)
-        stone.update(contactable)
-        fire.update(contactable, bullets)
-        bullets.update()
-
         # Remove bullets that go off the screen
         for bullet in bullets:
             if bullet.rect.x > WIDTH:
@@ -428,6 +422,11 @@ def main():
                 fire.add(Fire(550, 285, 1, 0, player))
                 fire.add(Fire(780, 15, 0, 2, player))
 
+        # Update game elements
+        player.update(all_plat)
+        stone.update(contactable)
+        fire.update(contactable, bullets)
+        bullets.update()
         # Update display
         pygame.display.flip()
 
