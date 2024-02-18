@@ -8,9 +8,11 @@ Teleport for next level
 Assignment made by Sean Fei and Roy Su
 """
 
-import pygame, numpy
 import sys
+import numpy
+import pygame
 
+# Basic element
 WIDTH = 960
 HEIGHT = 540
 BACKGROUND = pygame.image.load("background.png")
@@ -21,10 +23,8 @@ pygame.display.set_caption("Can You Catch The Timing?")
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, image, startx, starty):
         super().__init__()
-
         self.image = pygame.image.load(image)
         self.rect = self.image.get_rect()
-
         self.rect.center = [startx, starty]
 
     def draw(self, screen):
@@ -37,7 +37,6 @@ class Player(Sprite):
         super().__init__("p1_front.png", startx, starty)
         self.stand_image = self.image
         self.jump_image = pygame.image.load("p1_jump.png")
-
         self.walk_cycle = [pygame.image.load(f"p1_walk{i:0>2}.png") for i in range(1, 12)]
         self.animation_index = 0
         self.facing_left = False
@@ -47,6 +46,7 @@ class Player(Sprite):
         self.vsp = 0
         self.gravity = 1
         self.min_jumpspeed = 3
+
         self.prev_key = pygame.key.get_pressed()
 
     # Methods for updating player state and animations
@@ -69,7 +69,7 @@ class Player(Sprite):
         else:
             self.image = self.stand_image
 
-        if key[pygame.K_UP] and (onground):
+        if key[pygame.K_UP] and onground:
             self.vsp = -self.jumpspeed
 
         if self.prev_key[pygame.K_UP] and not key[pygame.K_UP]:
@@ -78,11 +78,13 @@ class Player(Sprite):
 
         self.prev_key = key
 
-        if self.vsp < 10 and not (onground):
+        # player vertical speed increment
+        if self.vsp < 10 and not onground:
             self.jump_animation()
             self.vsp += self.gravity
 
-        if self.vsp > 0 and (onground):
+        # if player step on ground, vertical speed become 0:
+        if self.vsp > 0 and onground:
             self.vsp = 0
 
         self.move(hsp, self.vsp, all_plat)
@@ -148,7 +150,7 @@ class Enemy(Sprite):
             self.speed *= -1
 
 
-# Class for Fire, inheriting from Sprite
+# Class for Fire enemy, inheriting from Sprite
 class Fire(Sprite):
     def __init__(self, startx, starty, speedx, speedy, player):
         super().__init__("enemy.png", startx, starty)
@@ -162,8 +164,8 @@ class Fire(Sprite):
         # Increment the bullet timer
         self.bullet_timer += 0.5
 
-        if self.bullet_timer >= 60:  # Change 60 to control the firing interval (60 frames per second)
-            bullet = Bullet(self.player)
+        if self.bullet_timer >= 60:  # Reach 60 to fire a bullet (60 frames per second)
+            bullet = Bullet()
             bullet.rect.center = self.rect.center
 
             # Determine the bullet's direction based on the relative positions of the player and fire enemy
@@ -179,9 +181,8 @@ class Fire(Sprite):
 class Bullet(pygame.sprite.Sprite):
     """ This class represents the bullet . """
 
-    def __init__(self, player):
+    def __init__(self):
         super().__init__()
-        self.player = player
         self.image = pygame.Surface([10, 10])
 
         self.image.fill(pygame.color.THECOLORS['red'])
@@ -291,8 +292,8 @@ def main():
 
     done = True
 
-    # Event handling
     while done:
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = False
@@ -301,15 +302,14 @@ def main():
 
         # Remove bullets that go off the screen
         for bullet in bullets:
-            if bullet.rect.x > WIDTH:
+            if bullet.rect.x > WIDTH or (bullet.rect.x < 0):
                 bullets.remove(bullet)
 
         # Check for collisions between bullets and blocks
         for block in contactable:
-            bullet_hits_list = pygame.sprite.spritecollide(
-                block, bullets, True)
+            bullet_hits_list = pygame.sprite.spritecollide(block, bullets, True)
 
-            # For each block hit, remove the bullet
+            # For each bullet hit, remove the bullet
             for bullet in bullet_hits_list:
                 bullets.remove(bullet)
 
@@ -336,6 +336,8 @@ def main():
                 contactable.add(platform_group)
                 all_plat.add(box_group_lv_2)
                 stone.empty()
+                fire.empty()
+                bullets.empty()
                 stone.add(Enemy(550, 245))
                 fire.add(Fire(250, 215, 1, 0, player))
                 fire.add(Fire(550, 285, 1, 0, player))
@@ -359,10 +361,10 @@ def main():
 
             # Check for player entering the teleport to proceed to the next level
             if pygame.sprite.spritecollideany(player, teleport_group):
-                # Set up level 3 elements
+                # Remove level 2 object, set up level 3 object
                 all_plat.remove(box_group_lv_2)
-                all_plat.add(box_group_lv_3)
                 contactable.remove(box_group_lv_2)
+                all_plat.add(box_group_lv_3)
                 contactable.add(box_group_lv_3)
                 current_level = 3
                 player.rect.center = (50, 390)
@@ -391,7 +393,7 @@ def main():
 
             # Check for player entering the teleport to proceed to the next level
             if pygame.sprite.spritecollideany(player, teleport_group):
-                # Set up level 4 elements
+                # Set up level 4 elements, remove level 3 object
                 all_plat.remove(box_group_lv_3)
                 contactable.remove(box_group_lv_3)
                 current_level = 4
@@ -417,6 +419,8 @@ def main():
                 contactable.add(box_group_lv_2)
                 contactable.add(platform_group)
                 all_plat.add(box_group_lv_2)
+                fire.empty()
+                bullets.empty()
                 stone.empty()
                 stone.add(Enemy(550, 245))
                 fire.add(Fire(250, 215, 1, 0, player))
