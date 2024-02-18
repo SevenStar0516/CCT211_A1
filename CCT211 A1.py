@@ -411,6 +411,7 @@ def main():
 
             # Check for player entering the teleport to return to level 2
             if pygame.sprite.spritecollideany(player, teleport_group):
+                # Set up level 2 elements
                 current_level = 2
                 player.rect.center = (50, 390)
                 contactable.add(box_group_lv_2)
